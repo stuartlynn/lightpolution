@@ -1,3 +1,4 @@
+use actix_files as fs;
 use actix_web::client::Client;
 use actix_web::{get, post, web, App, Error, HttpResponse, HttpServer, Responder};
 use futures::future::Future;
@@ -11,9 +12,9 @@ extern crate dotenv;
 
 mod db;
 
-#[get("/")]
-async fn hello() -> impl Responder {
-    HttpResponse::Ok().body("Hello world!")
+#[get("/health")]
+async fn health() -> impl Responder {
+    HttpResponse::Ok().body("Still alive!")
 }
 
 #[derive(Serialize, Deserialize)]
@@ -70,8 +71,9 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         App::new()
             .data(Client::new())
-            .service(hello)
+            .service(health)
             .service(lp_tile)
+            .service(fs::Files::new("/", "./public").index_file("index.html"))
     })
     .bind("0.0.0.0:8080")?
     .run()
