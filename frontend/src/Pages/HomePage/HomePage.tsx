@@ -29,7 +29,7 @@ export const HomePage: React.FC = () => {
     console.log("Geocode results ", geocodeResults);
 
     const LightPolutionLayer = new TileLayer({
-        data: "/light_polution//{x}/{y}/{z}",
+        data: "/light_polution/{x}/{y}/{z}",
         visible: showNightLight,
         opacity: nightLightOpacity,
         renderSubLayers: props => {
