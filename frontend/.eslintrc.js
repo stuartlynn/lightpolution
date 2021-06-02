@@ -27,7 +27,11 @@ module.exports = {
     },
     rules: {
       'linebreak-style': 'off',
+      'import/no-extraneous-dependencies': 'warn',
+      '@typescript-eslint/ban-ts-comment': 'warn',
       'import/prefer-default-export': 'off',
+      'jsx-a11y/label-has-associated-control':'warn',
+      'react/prop-types':'warn',
       'prettier/prettier': [
         'warn',
         {
