@@ -9,9 +9,9 @@ import { usePlaces } from 'Hooks/usePlaces';
 import {Styles} from './HomePageStyles'
 
 const INITIAL_VIEW_STATE = {
-  longitude: -122.41669,
-  latitude: 37.7853,
-  zoom: 13,
+  longitude: -98.5795,
+  latitude: 39.828175,
+  zoom: 5,
   pitch: 0,
   bearing: 0
 };
@@ -19,7 +19,7 @@ const INITIAL_VIEW_STATE = {
 export const HomePage: React.FC = () => {
     const [showNightLight, setShowNightLight] = useState(true)
     const [showIncorporated, setShowIncorportaed] = useState(true)
-    const [showTargets, setShowTargets] = useState(true)
+    const [showTargets, setShowTargets] = useState(false)
     const [searchPrimed, setSearchPrimed] = useState(false)
     const [searchLoc, setSearchLoc] = useState<[number,number] | undefined>(undefined)
     const [nightLightOpacity, setNightLightOpacity] = useState(0.7)
@@ -66,7 +66,7 @@ export const HomePage: React.FC = () => {
         getIcon: d => 'marker',
         sizeScale: 15,
         getPosition: (d:any) => d.coords,
-        getSize: d => 5,
+        getSize: d => 2,
     })
 
     const TargetsLayer = new GeoJsonLayer({
