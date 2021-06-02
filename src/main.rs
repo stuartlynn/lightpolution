@@ -73,7 +73,7 @@ async fn main() -> std::io::Result<()> {
             .service(hello)
             .service(lp_tile)
     })
-    .bind("127.0.0.1:5000")?
+    .bind("0.0.0.0:8080")?
     .run()
     .await
 }
