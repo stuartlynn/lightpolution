@@ -1,6 +1,8 @@
 import React from 'react'
 import { Styles } from 'Components/Controls/ControlsStyles'
 import Select from 'react-select'
+import Slider from 'rc-slider'
+import 'rc-slider/assets/index.css';
 
 interface ControlsProps{
     showIncorporated: boolean,
@@ -8,11 +10,13 @@ interface ControlsProps{
     showTargets: boolean,
     nightLightOpacity: number 
     baseMap: string,
+    minFlux: number,
     onSetBaseMap: (baseMap: string)=>void,
     onSetShowIncorparted: (show : boolean )=>void,
     onSetShowNightLight: (show : boolean )=>void,
     onSetNightLightOpacity: (opacity:number) =>void,
-    onSetShowTargets:(show: boolean)=>void
+    onSetShowTargets:(show: boolean)=>void,
+    onMinFluxChange: (flux: number)=>void
 }
 
 const MapOptions =[
@@ -27,6 +31,8 @@ export const Controls: React.FC<ControlsProps> =({
     showIncorporated,
     showNightLight, 
     showTargets,
+    minFlux,
+    onMinFluxChange,
     nightLightOpacity, 
     onSetBaseMap,
     baseMap,
@@ -50,6 +56,10 @@ export const Controls: React.FC<ControlsProps> =({
             </label>
 
             <Select options={MapOptions} value={selection} placeholder="BaseMap" onChange={(option)=> onSetBaseMap(option!.value)}/>
+            <label>
+                Min target flux
+                <Slider min={0} max={1000} step={10} value={minFlux} onChange={onMinFluxChange}/>
+            </label>
             </Styles.Form>
         </Styles.Controls>
     )

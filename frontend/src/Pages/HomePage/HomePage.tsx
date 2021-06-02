@@ -6,6 +6,7 @@ import {BitmapLayer, GeoJsonLayer, IconLayer} from '@deck.gl/layers';
 import {Controls} from 'Components/Controls/Controls'
 import {GeoCodeResults} from 'Components/GeoCodeResults/GeoCodeResults'
 import { usePlaces } from 'Hooks/usePlaces';
+import {DataFilterExtension} from '@deck.gl/extensions'
 import {Styles} from './HomePageStyles'
 
 const INITIAL_VIEW_STATE = {
@@ -20,6 +21,8 @@ export const HomePage: React.FC = () => {
     const [showNightLight, setShowNightLight] = useState(true)
     const [showIncorporated, setShowIncorportaed] = useState(true)
     const [showTargets, setShowTargets] = useState(false)
+    const [minFlux, setMinFlux] = useState(0)
+
     const [searchPrimed, setSearchPrimed] = useState(false)
     const [searchLoc, setSearchLoc] = useState<[number,number] | undefined>(undefined)
     const [nightLightOpacity, setNightLightOpacity] = useState(0.7)
@@ -66,19 +69,22 @@ export const HomePage: React.FC = () => {
         getIcon: d => 'marker',
         sizeScale: 15,
         getPosition: (d:any) => d.coords,
-        getSize: d => 2,
+        getSize: d => 10,
     })
 
     const TargetsLayer = new GeoJsonLayer({
         id:'targets',
         data: "/non_incorporated_sources.geojson",
         visible: showTargets,
-        getRadius:10,
+        getRadius:6,
         pointRadiusUnits: "pixels",
         stroked:true,
         filled: true,
         getFillColor: [255,0,0,255],
-        getStrokeColor: [255,255,255,255]
+        getStrokeColor: [255,255,255,255],
+        getFilterValue: (f:any)=> f.properties.flux,
+        extensions: [new DataFilterExtension()],
+        filterRange: [minFlux, 40000]
     })
 
     const IncorporatedPlacesLayer  = new GeoJsonLayer({
@@ -103,6 +109,8 @@ export const HomePage: React.FC = () => {
                 onSetNightLightOpacity={setNightLightOpacity}
                 onSetShowTargets={setShowTargets}
                 nightLightOpacity={nightLightOpacity}
+                minFlux={minFlux}
+                onMinFluxChange={setMinFlux}
             />
 
             <GeoCodeResults 
