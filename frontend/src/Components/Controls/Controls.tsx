@@ -11,11 +11,13 @@ interface ControlsProps{
     nightLightOpacity: number 
     baseMap: string,
     minFlux: number,
+    showPowerPlants: boolean,
     onSetBaseMap: (baseMap: string)=>void,
     onSetShowIncorparted: (show : boolean )=>void,
     onSetShowNightLight: (show : boolean )=>void,
     onSetNightLightOpacity: (opacity:number) =>void,
     onSetShowTargets:(show: boolean)=>void,
+    onSetShowPowerPlants:(show: boolean)=>void,
     onMinFluxChange: (flux: number)=>void
 }
 
@@ -31,6 +33,7 @@ export const Controls: React.FC<ControlsProps> =({
     showIncorporated,
     showNightLight, 
     showTargets,
+    showPowerPlants,
     minFlux,
     onMinFluxChange,
     nightLightOpacity, 
@@ -38,7 +41,8 @@ export const Controls: React.FC<ControlsProps> =({
     baseMap,
     onSetShowIncorparted,
     onSetShowNightLight,
-    onSetShowTargets
+    onSetShowTargets,
+    onSetShowPowerPlants
 })=>{
     const selection = MapOptions.find(mo => mo.value===baseMap)
 
@@ -53,6 +57,9 @@ export const Controls: React.FC<ControlsProps> =({
             </label>
             <label>Show targets 
                 <input type='checkbox' checked={showTargets} onChange={(e)=> onSetShowTargets(e.target.checked)} /> 
+            </label>
+            <label>Show powerplants 
+                <input type='checkbox' checked={showPowerPlants} onChange={(e)=> onSetShowPowerPlants(e.target.checked)} /> 
             </label>
 
             <Select options={MapOptions} value={selection} placeholder="BaseMap" onChange={(option)=> onSetBaseMap(option!.value)}/>

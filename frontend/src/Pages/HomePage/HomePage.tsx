@@ -7,6 +7,7 @@ import {Controls} from 'Components/Controls/Controls'
 import {GeoCodeResults} from 'Components/GeoCodeResults/GeoCodeResults'
 import { usePlaces ,usePlagesGeocodeEarth} from 'Hooks/usePlaces';
 import {DataFilterExtension} from '@deck.gl/extensions'
+import chroma from 'chroma-js'
 import {Styles} from './HomePageStyles'
 
 const INITIAL_VIEW_STATE = {
@@ -17,10 +18,25 @@ const INITIAL_VIEW_STATE = {
   bearing: 0
 };
 
+const COLOR= [
+    "#66C5CC",
+    "#F6CF71",
+    "#F89C74",
+    "#DCB0F2",
+    "#87C55F",
+    "#9EB9F3",
+    "#FE88B1",
+    "#C9DB74",
+    "#8BE0A4",
+    "#B497E7",
+    "#D3B484",
+    "#B3B3B3"]
+
 export const HomePage: React.FC = () => {
     const [showNightLight, setShowNightLight] = useState(true)
     const [showIncorporated, setShowIncorportaed] = useState(true)
     const [showTargets, setShowTargets] = useState(false)
+    const [showPowerPlants, setShowPowerPlants] = useState(false)
     const [minFlux, setMinFlux] = useState(0)
 
     const [searchPrimed, setSearchPrimed] = useState(false)
@@ -71,7 +87,7 @@ export const HomePage: React.FC = () => {
         iconAtlas: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
         iconMapping: ICON_MAPPING,
         getIcon: d => 'marker',
-        sizeScale: 15,
+        sizeScale: 8,
         getPosition: (d:any) => d.coords,
         getSize: d => 10,
     })
@@ -80,15 +96,31 @@ export const HomePage: React.FC = () => {
         id:'targets',
         data: "/non_incorporated_sources.geojson",
         visible: showTargets,
-        getRadius:6,
+        getRadius:5,
         pointRadiusUnits: "pixels",
         stroked:true,
         filled: true,
-        getFillColor: [255,0,0,255],
-        getStrokeColor: [255,255,255,255],
+        getFillColor: chroma(COLOR[2]).rgb(),
+        radiusMinPixels: 10,
+        lineWidthMinPixels:2,
+        getLineColor: [255,255,255,255],
         getFilterValue: (f:any)=> f.properties.flux,
         extensions: [new DataFilterExtension()],
         filterRange: [minFlux, 40000]
+    })
+
+    const PowerPlantLayer= new GeoJsonLayer({
+        id:'powerplants',
+        data: "/power_plants.geojson",
+        visible: showPowerPlants,
+        getRadius:5,
+        pointRadiusUnits: "pixels",
+        stroked:true,
+        filled: true,
+        radiusMinPixels: 10,
+        lineWidthMinPixels:2,
+        getLineColor: [255,255,255,255],
+        getFillColor: chroma(COLOR[3]).rgb(),
     })
 
     const IncorporatedPlacesLayer  = new GeoJsonLayer({
@@ -96,8 +128,11 @@ export const HomePage: React.FC = () => {
         visible: showIncorporated,
         stroked: true,
         filled: true,
-        getFillColor: [255,255,255,255],
-        getLineColor: [255,0,0,0]
+        getFillColor: chroma(COLOR[1]).rgb(),
+        getLineColor: [255,255,255],
+        lineWidthMinPixels:1,
+        getLineWidth: 1
+
     })
 
     return(
@@ -106,12 +141,14 @@ export const HomePage: React.FC = () => {
                 showIncorporated={showIncorporated}
                 showNightLight= {showNightLight}
                 showTargets = {showTargets}
+                showPowerPlants={showPowerPlants}
                 baseMap ={ baseMap}
                 onSetBaseMap= {setBaseMap}
                 onSetShowIncorparted={setShowIncorportaed}
                 onSetShowNightLight={setShowNightLight}
                 onSetNightLightOpacity={setNightLightOpacity}
                 onSetShowTargets={setShowTargets}
+                onSetShowPowerPlants={setShowPowerPlants}
                 nightLightOpacity={nightLightOpacity}
                 minFlux={minFlux}
                 onMinFluxChange={setMinFlux}
@@ -128,7 +165,7 @@ export const HomePage: React.FC = () => {
             initialViewState={INITIAL_VIEW_STATE}
             controller
             // @ts-ignore
-            layers={[LightPolutionLayer,IncorporatedPlacesLayer, TargetsLayer, SearchMarkerLayer ]}
+            layers={[LightPolutionLayer,IncorporatedPlacesLayer, TargetsLayer, SearchMarkerLayer, PowerPlantLayer ]}
             onClick={handleSelect}
             >
                 <StaticMap  mapStyle={`mapbox://styles/mapbox/${baseMap}`} mapboxApiAccessToken="pk.eyJ1Ijoic3R1YXJ0LWx5bm4iLCJhIjoiM2Q4ODllNmRkZDQ4Yzc3NTBhN2UyNDE0MWY2OTRiZWIifQ.8OEKvgZBCCtDFUXkjt66Pw" />
