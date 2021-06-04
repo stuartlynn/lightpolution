@@ -5,7 +5,7 @@ import {TileLayer} from '@deck.gl/geo-layers';
 import {BitmapLayer, GeoJsonLayer, IconLayer} from '@deck.gl/layers';
 import {Controls} from 'Components/Controls/Controls'
 import {GeoCodeResults} from 'Components/GeoCodeResults/GeoCodeResults'
-import { usePlaces } from 'Hooks/usePlaces';
+import { usePlaces ,usePlagesGeocodeEarth} from 'Hooks/usePlaces';
 import {DataFilterExtension} from '@deck.gl/extensions'
 import {Styles} from './HomePageStyles'
 
@@ -29,7 +29,11 @@ export const HomePage: React.FC = () => {
     const [baseMap , setBaseMap] = useState<string>("satellite-v9")
 
     const geocodeResults =usePlaces(searchLoc)
+    const geocodeEarthResults = usePlagesGeocodeEarth(searchLoc)
+
+
     console.log("Geocode results ", geocodeResults);
+    console.log("Geocode earth results ", geocodeEarthResults )
 
     const LightPolutionLayer = new TileLayer({
         data: "/light_polution/{x}/{y}/{z}",

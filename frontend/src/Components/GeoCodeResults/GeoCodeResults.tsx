@@ -19,9 +19,17 @@ export const GeoCodeResults: React.FC<GeoCodingResultsProps>=({isSearchPrimed,re
                 {results.map((result)=>
                     <Styles.Result key={result.id}>
                         {result.text}
+                        {result.address}
                     </Styles.Result>
                 )}
             </Styles.Results>
+            {searchLoc && 
+                <a rel='noreferrer' href={`https://maps.google.com/?q=${searchLoc[1]},${searchLoc[0]}`} target='_blank'>
+                    <button type='submit'>
+                        Open in Google maps
+                    </button>
+                </a>
+            }
         </Styles.GeoCodeResults>
     )
 }
