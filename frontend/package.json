@@ -60,6 +60,7 @@
     }
   },
   "devDependencies": {
+    "@babel/plugin-syntax-typescript": "^7.12.13",
     "@types/react-router": "^5.1.14",
     "@types/react-router-dom": "^5.1.7",
     "@types/react-select": "^4.0.15",
