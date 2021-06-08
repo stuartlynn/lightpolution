@@ -1,11 +1,8 @@
-use diesel::pg::PgConnection;
-use diesel::prelude::*;
-use dotenv::dotenv;
-use std::env;
+use deadpool_postgres::Client;
+use crate::config::Config;
+use tokio_postgres::NoTls;
+use deadpool_postgres::Pool;
 
-pub fn establish_connection() -> PgConnection {
-    dotenv().ok();
-
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    PgConnection::establish(&database_url).expect(&format!("Error connecting to {}", database_url))
+pub async fn establish_connection(config: &Config) -> Pool{
+    config.pg.create_pool(NoTls).expect("FAILED TO CONNECT TO DB")
 }

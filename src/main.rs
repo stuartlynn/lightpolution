@@ -1,43 +1,42 @@
 use actix_files as fs;
 use actix_web::client::Client;
+
 use actix_web::{get, post, web, App, Error, HttpResponse, HttpServer, Responder};
 use futures::future::Future;
 use futures::TryFutureExt;
 use serde::{Deserialize, Serialize};
-use std::f64::consts::PI;
+use crate::config::Config;
+use db::establish_connection;
+use deadpool_postgres::Pool;
+use crate::light_source::LightSource;
+use crate::tiles::{bbox,TileID};
+use std::ops::{DerefMut};
 
-#[macro_use]
-extern crate diesel;
+
 extern crate dotenv;
+extern crate refinery;
 
 mod db;
+mod config;
+mod light_source;
+mod tiles;
+
+mod embedded {
+    use refinery::embed_migrations;
+    embed_migrations!("./migrations");
+}
 
 #[get("/health")]
 async fn health() -> impl Responder {
     HttpResponse::Ok().body("Still alive!")
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct TileID {
-    x: usize,
-    y: usize,
-    z: usize,
-}
 
-pub fn bbox(tile_id: &TileID) -> [f64; 4] {
-    let x = tile_id.x;
-    let y = tile_id.y;
-    let z = tile_id.z;
+#[get("/light_sources/{id}")]
+async fn get_target(state :web::Data<State>, web::Path(id): web::Path<u32>)-> impl Responder{
+    let source = LightSource::find(&state.db,id).await;
 
-    let max = 6378137.0 * PI;
-    let res = max * 2.0 / 2.0_f64.powf(z as f64) as f64;
-
-    [
-        -max + (x as f64) * res,
-        max - ((y as f64) * res),
-        -max + (x as f64) * res + res,
-        max - ((y as f64) * res) - res,
-    ]
+    source.unwrap().to_geojson(false).to_string()
 }
 
 #[get("/light_polution/{x}/{y}/{z}")]
@@ -48,7 +47,7 @@ async fn lp_tile(
     let bbox = bbox(&params);
     let bbox_str = format!("{},{},{},{}", bbox[0], bbox[3], bbox[2], bbox[1]);
     let url = format!("https://lighttrends.lightpollutionmap.info/geoserver/gwc/service/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image/png&TRANSPARENT=true&TILED=true&SRS=EPSG:3857&LAYERS=lighttrends:viirs_npp_201600&STYLES=viirs_c1&WIDTH=256&HEIGHT=256&CRS=EPSG:3857&BBOX={}", bbox_str);
-    println!("proxting {}", url);
+
     client
         .get(url)
         .send()
@@ -65,14 +64,39 @@ async fn lp_tile(
         .await
 }
 
+#[derive(Clone)]
+struct State{
+    pub db: Pool,
+    pub client: Client
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    println!("Connecting");
-    HttpServer::new(|| {
+    dotenv::dotenv().ok();
+
+    // Parse config
+    let config = Config::from_env().unwrap();
+
+    // Create DB Pool
+    let pool = establish_connection(&config).await;
+
+    // // Run migrations 
+    // let mut conn = pool.get().await.unwrap();
+    // let m = conn.deref_mut().deref_mut();
+    // embedded::migrations::runner().run_async(m).await.unwrap();
+
+    // Define routes and start server!
+
+    HttpServer::new(move || {
+        let state = State{
+            db:pool.clone(),
+            client: Client::new()
+        };
         App::new()
-            .data(Client::new())
+            .data(state.clone())
             .service(health)
             .service(lp_tile)
+            .service(get_target)
             .service(fs::Files::new("/", "./public").index_file("index.html"))
     })
     .bind("0.0.0.0:8080")?
