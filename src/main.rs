@@ -1,7 +1,7 @@
-// use actix_files as fs;
+use actix_files as fs;
 use awc::Client;
 
-use actix_web::{get, post, web, App, Error, HttpResponse, BaseHttpResponse,HttpServer, Responder};
+use actix_web::{get, post, web, App, Error, HttpResponse, HttpServer, Responder};
 use futures::future::Future;
 use futures::TryFutureExt;
 use serde::{Deserialize, Serialize};
@@ -54,7 +54,7 @@ async fn get_targets(state :web::Data<State>)-> impl Responder{
 async fn lp_tile(
     state: web::Data<State>,
     tileID : web::Path<TileID>,
-) -> Result<BaseHttpResponse<actix_web::dev::Body>, Error> {
+) -> Result<HttpResponse<actix_web::dev::Body>, Error> {
     let bbox = bbox(&tileID);
     let bbox_str = format!("{},{},{},{}", bbox[0], bbox[3], bbox[2], bbox[1]);
     let url = format!("https://lighttrends.lightpollutionmap.info/geoserver/gwc/service/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image/png&TRANSPARENT=true&TILED=true&SRS=EPSG:3857&LAYERS=lighttrends:viirs_npp_201600&STYLES=viirs_c1&WIDTH=256&HEIGHT=256&CRS=EPSG:3857&BBOX={}", bbox_str);
@@ -112,7 +112,7 @@ async fn main() -> std::io::Result<()> {
             .service(lp_tile)
             .service(get_targets)
             .service(get_target)
-            // .service(fs::Files::new("/", "./public").index_file("index.html"))
+            .service(fs::Files::new("/", "./public").index_file("index.html"))
     })
     .bind("0.0.0.0:8080")?
     .run()
