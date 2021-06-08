@@ -4,6 +4,7 @@ use serde::Deserialize;
 #[derive(Deserialize)]
 pub struct Config {
     pub pg: deadpool_postgres::Config,
+    pub database_url: String
 }
 
 impl Config {

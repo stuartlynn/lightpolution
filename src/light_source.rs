@@ -1,17 +1,20 @@
 use serde::{Serialize,Deserialize};
 use geo_types::{Point,Polygon};
-use tokio_postgres::Row;
 use std::convert::From;
 use geozero::wkt::WktWriter;
 use geozero::wkb;
 use deadpool_postgres::Pool;
 use actix_web::Error;
-use geojson::{GeoJson, Feature, Geometry,Value};
+use geojson::{GeoJson, Feature, Geometry,Value, FeatureCollection};
 use serde_json::{to_value,Map};
+use sqlx::postgres::{PgRow};
+use sqlx::{Column, Row,TypeInfo};
+use crate::db::DBPool;
+use crate::error::LPError;
 
 #[derive(Serialize,Deserialize,Default,Debug)]
 pub struct LightSource{
-    pub id: u32,
+    pub id: i32,
     pub name: String,
     pub address: Option<String>,
     pub location: Option<Point<f64>>,
@@ -22,10 +25,8 @@ pub struct LightSource{
     pub known_object_id: Option<u32>
 }
 
-
-impl From<Row> for  LightSource{
-    fn from(row:Row) ->Self{
-
+impl From<PgRow> for LightSource{
+    fn from(row:PgRow) ->Self{
         let extent: wkb::Decode<geo_types::Geometry<f64>> = row.get("extent");
         let extent  = if let Some(geo_types::Geometry::Polygon(poly)) = extent.geometry{
             Some(poly)
@@ -34,11 +35,21 @@ impl From<Row> for  LightSource{
             None
         };
 
+        let location: wkb::Decode<geo_types::Geometry<f64>> = row.get("location");
+        let location = if let Some(geo_types::Geometry::Point(point)) = location.geometry{
+            Some(point)
+        }
+        else{
+            None
+        };
+
+        println!("location is {:?}", location);
+
         Self{
             id: row.get("id"),
             name: row.get("name"),
             address: row.get("address"),
-            location: row.get("location"),
+            location,
             extent,
             nodes: row.get("nodes"),
             target_id: row.get("target_id"),
@@ -49,12 +60,40 @@ impl From<Row> for  LightSource{
 }
 
 impl LightSource{
-    pub async fn find(pool:&Pool, id:u32)-> Result<Self, Error>{
-        let conn = pool.get().await.unwrap();
-        let stmt = conn.prepare_cached("SELECT * from light_sources where id = $1").await.unwrap();
-        let result = conn.query_one(&stmt, &[&id]).await.unwrap().into();
+    pub async fn find(pool:&DBPool, id:i32)-> Result<Self, LPError>{
+        let query =sqlx::query("SELECT * FROM light_sources where id = $1");
+
+
+        let result: Self = query
+                          .bind(id)
+                          .map(|row: PgRow| row.into())
+                          .fetch_one(pool)
+                          .await
+                          .map_err(|_| LPError{name: "Failed to get light sources"})?;
+        
         Ok(result)
     }
+
+    pub async fn all(pool:&DBPool) -> Result<Vec<Self>,LPError>{
+        let query =sqlx::query("SELECT * FROM light_sources");
+
+        let result: Vec<Self> = query
+                          .map(|row: PgRow| row.into())
+                          .fetch_all(pool)
+                          .await
+                          .map_err(|_| LPError{name: "Failed to get light sources"})?;
+        
+        Ok(result)
+    }
+
+    pub fn to_feature_col(features: Vec<Self>)->FeatureCollection{
+        let geo_features : Vec<Feature> = features.iter().map(|f| f.to_geojson(false)).collect(); 
+        FeatureCollection{
+            bbox:None,
+            features: geo_features,
+            foreign_members:None
+        }
+    }  
 
     pub fn to_geojson(&self, extent:bool)-> Feature{
 
@@ -78,8 +117,8 @@ impl LightSource{
         } ;
 
         let geometry = match extent{
-            True => extent_geom,
-            False => point_geom
+            true => extent_geom,
+            false => point_geom
         };
 
         Feature{

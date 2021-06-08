@@ -7,8 +7,9 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-actix-files = "0.5.0"
-actix-web="3"
+# actix-files = "0.5.0"
+actix-web="4.0.0-beta.6"
+awc={version = "3.0.0-beta.5", features = ["openssl"]}
 
 #actix-web ={version = "4.0.0-beta.6", features=['openssl']}
 serde = { version = "1.0.104", features = ["derive"] }
@@ -20,12 +21,12 @@ uuid = { version = "0.6", features = ["serde", "v4"] }
 reqwest = "0.11.3"
 futures = "0.3.1"
 dotenv = "0.15.0"
-postgis = "0.8.0"
 config = "0.10.1"
 geo-types = {version = "0.7.2", features=['serde']}
-tokio-postgres = {version ="0.7.2", features = ["with-chrono-0_4", "with-geo-types-0_7", "with-serde_json-1"]}
 deadpool-postgres = "0.9.0"
-tokio-pg-mapper = "0.2"
-geozero = {version = "0.7.4", features=["with-wkb", "with-geo", "with-postgis-postgres"]}
+geozero = {version = "0.7.4", features=["with-wkb", "with-geo", "with-postgis-sqlx"]}
 geojson ={version="0.22.2", features=['geo-types']}
-refinery = { version = "0.5", features = ["tokio-postgres"]}
+
+sqlx = { version = "0.5", features = [
+    "postgres","uuid","chrono","runtime-actix-rustls","json"
+]}
