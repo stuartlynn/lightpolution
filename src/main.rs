@@ -6,7 +6,7 @@ use futures::future::Future;
 use futures::TryFutureExt;
 use serde::{Deserialize, Serialize};
 use crate::config::Config;
-use db::{establish_connection_sqlx, DBPool};
+use db::{establish_connection_sqlx, DBPool,TilePool};
 use deadpool_postgres::Pool;
 use crate::light_source::LightSource;
 use crate::tiles::{bbox,TileID};
@@ -50,6 +50,44 @@ async fn get_targets(state :web::Data<State>)-> impl Responder{
     source.to_string()
 }
 
+#[derive(sqlx::FromRow)]
+struct MBTile {
+    tile_data: Vec<u8>
+} 
+
+#[get("/incorp_places/{z}/{x}/{y}")]
+async fn get_incorp_places(
+    state: web::Data<State>,
+    tile_id: web::Path<TileID>
+)->Result<HttpResponse, Error>{
+    let query = "select tile_data from tiles where zoom_level = $1 and tile_column = $2 and tile_row = $3";
+
+    let y = ( 1 << tile_id.z) -1 - tile_id.y; 
+
+    let row: MBTile = sqlx::query_as(query)
+        // .bind(tileID.z as u32)
+        // .bind(tileID.y as u32)
+        // .bind(tileID.x as u32)
+        .bind(tile_id.z as u32)
+        .bind(tile_id.x as u32)
+        .bind( y as u32)
+        .fetch_one(&state.tiles).await
+        .map_err(|e| {
+            println!("{:?}",e);
+            actix_web::error::ErrorNotFound(&"Failed to get mbtile")
+        })?;
+
+    Ok(HttpResponse::Ok()
+    .header(
+        "Content-Type", "application/x-protobuf"
+    )
+    .header(
+        "Content-Encoding", "gzip"
+    )
+    .body(row.tile_data))
+
+}
+
 #[get("/light_polution/{x}/{y}/{z}")]
 async fn lp_tile(
     state: web::Data<State>,
@@ -81,7 +119,8 @@ async fn lp_tile(
 #[derive(Clone)]
 struct State{
     pub db: DBPool,
-    pub client: Client
+    pub client: Client,
+    pub tiles: TilePool
 }
 
 #[actix_web::main]
@@ -92,7 +131,7 @@ async fn main() -> std::io::Result<()> {
     let config = Config::from_env().unwrap();
 
     // Create DB Pool
-    let pool = establish_connection_sqlx(&config).await;
+    let (pool,tile_pool) = establish_connection_sqlx(&config).await;
 
     // // Run migrations 
     // let mut conn = pool.get().await.unwrap();
@@ -104,6 +143,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         let state = State{
             db:pool.clone(),
+            tiles:tile_pool.clone(),
             client: Client::new()
         };
         App::new()
@@ -112,6 +152,7 @@ async fn main() -> std::io::Result<()> {
             .service(lp_tile)
             .service(get_targets)
             .service(get_target)
+            .service(get_incorp_places)
             .service(fs::Files::new("/", "./public").index_file("index.html"))
     })
     .bind("0.0.0.0:8080")?

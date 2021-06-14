@@ -3,9 +3,9 @@ use std::f64::consts::PI;
 
 #[derive(Serialize, Deserialize)]
 pub struct TileID {
-    x: usize,
-    y: usize,
-    z: usize,
+    pub x: usize,
+    pub y: usize,
+    pub z: usize,
 }
 
 pub fn bbox(tile_id: &TileID) -> [f64; 4] {

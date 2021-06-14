@@ -1,7 +1,7 @@
 import React, {useState} from 'react'
 import DeckGL from '@deck.gl/react';
 import {StaticMap} from 'react-map-gl';
-import {TileLayer} from '@deck.gl/geo-layers';
+import {TileLayer, MVTLayer} from '@deck.gl/geo-layers';
 import {BitmapLayer, GeoJsonLayer, IconLayer} from '@deck.gl/layers';
 import {Controls} from 'Components/Controls/Controls'
 import {GeoCodeResults} from 'Components/GeoCodeResults/GeoCodeResults'
@@ -123,15 +123,30 @@ export const HomePage: React.FC = () => {
         getFillColor: chroma(COLOR[3]).rgb(),
     })
 
-    const IncorporatedPlacesLayer  = new GeoJsonLayer({
-        data:"incorporated_places.geojson",
+    // const IncorporatedPlacesLayer  = new GeoJsonLayer({
+    //     data:"incorporated_places.geojson",
+    //     visible: showIncorporated,
+    //     stroked: true,
+    //     filled: true,
+    //     getFillColor: chroma(COLOR[1]).rgb(),
+    //     getLineColor: [255,255,255],
+    //     lineWidthMinPixels:1,
+    //     getLineWidth: 1
+
+    // })
+
+    const IncorporatedPlacesLayer  = new MVTLayer({
+        data:"/incorp_places/{z}/{x}/{y}",
         visible: showIncorporated,
-        stroked: true,
-        filled: true,
-        getFillColor: chroma(COLOR[1]).rgb(),
-        getLineColor: [255,255,255],
-        lineWidthMinPixels:1,
-        getLineWidth: 1
+        // @ts-ignore
+        getLineColor: [192, 192, 192],
+        getFillColor: [140, 170, 180],
+        getLineWidth: 10,
+        lineWidthMinPixels: 1
+        // getFillColor: chroma(COLOR[1]).rgb(),
+        // getLineColor: [255,255,255],
+        // lineWidthMinPixels:1,
+        // getLineWidth: 1
 
     })
 
