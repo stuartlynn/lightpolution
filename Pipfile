@@ -17,6 +17,7 @@ rasterio = "*"
 scipy = "*"
 rtree = "*"
 pygeos = "*"
+panoptes-client = "*"
 
 [dev-packages]
 
