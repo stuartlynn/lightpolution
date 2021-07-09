@@ -1,7 +1,7 @@
 use serde::{Serialize,Deserialize};
 use std::f64::consts::PI;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct TileID {
     pub x: usize,
     pub y: usize,

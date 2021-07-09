@@ -65,9 +65,6 @@ async fn get_incorp_places(
     let y = ( 1 << tile_id.z) -1 - tile_id.y; 
 
     let row: MBTile = sqlx::query_as(query)
-        // .bind(tileID.z as u32)
-        // .bind(tileID.y as u32)
-        // .bind(tileID.x as u32)
         .bind(tile_id.z as u32)
         .bind(tile_id.x as u32)
         .bind( y as u32)
@@ -86,6 +83,36 @@ async fn get_incorp_places(
     )
     .body(row.tile_data))
 
+}
+
+#[get("/light_polution/{x}/{y}/{z}")]
+async fn lp_tile_local(
+    state: web::Data<State>,
+    tile_id: web::Path<TileID>
+) -> Result<HttpResponse<actix_web::dev::Body>, Error>{
+
+    let query = "select tile_data from tiles where zoom_level = $1 and tile_column = $2 and tile_row = $3";
+
+    let y = ( 1 << tile_id.z) -1 - tile_id.y; 
+
+    let row: MBTile = sqlx::query_as(query)
+        .bind(tile_id.z as u32)
+        .bind(tile_id.x as u32)
+        .bind( y as u32)
+        .fetch_one(&state.lp_tiles).await
+        .map_err(|e| {
+            println!("{:?}",e);
+            actix_web::error::ErrorNotFound(format!("Failed to get mbtile {:?}", tile_id))
+        })?;
+
+    println!("got image data {:?}", tile_id);
+    println!("{:?}", row.tile_data);
+
+    Ok(HttpResponse::Ok()
+    .header(
+        "Content-Type", "image/png"
+    )
+    .body(row.tile_data))
 }
 
 #[get("/light_polution/{x}/{y}/{z}")]
@@ -120,7 +147,8 @@ async fn lp_tile(
 struct State{
     pub db: DBPool,
     pub client: Client,
-    pub tiles: TilePool
+    pub tiles: TilePool,
+    pub lp_tiles: TilePool
 }
 
 #[actix_web::main]
@@ -131,7 +159,7 @@ async fn main() -> std::io::Result<()> {
     let config = Config::from_env().unwrap();
 
     // Create DB Pool
-    let (pool,tile_pool) = establish_connection_sqlx(&config).await;
+    let (pool,tile_pool, lp_tiles) = establish_connection_sqlx(&config).await;
 
     // // Run migrations 
     // let mut conn = pool.get().await.unwrap();
@@ -144,12 +172,13 @@ async fn main() -> std::io::Result<()> {
         let state = State{
             db:pool.clone(),
             tiles:tile_pool.clone(),
+            lp_tiles:lp_tiles.clone(),
             client: Client::new()
         };
         App::new()
             .data(state.clone())
             .service(health)
-            .service(lp_tile)
+            .service(lp_tile_local)
             .service(get_targets)
             .service(get_target)
             .service(get_incorp_places)
