@@ -11,7 +11,7 @@ use deadpool_postgres::Pool;
 use crate::light_source::LightSource;
 use crate::tiles::{bbox,TileID};
 use std::ops::{DerefMut};
-
+use geotiff::TIFF;
 
 extern crate dotenv;
 // extern crate refinery;
@@ -151,6 +151,10 @@ struct State{
     pub lp_tiles: TilePool
 }
 
+fn get_geo_tiff_headers(){
+    let tiff = TIFF::open("images/reprog_VNL_cog.tif") ;
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv::dotenv().ok();
@@ -167,6 +171,8 @@ async fn main() -> std::io::Result<()> {
     // embedded::migrations::runner().run_async(m).await.unwrap();
 
     // Define routes and start server!
+    //
+    get_geo_tiff_headers();
 
     HttpServer::new(move || {
         let state = State{
