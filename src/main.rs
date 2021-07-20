@@ -12,6 +12,8 @@ use crate::light_source::LightSource;
 use crate::tiles::{bbox,TileID};
 use std::ops::{DerefMut};
 use geotiff::TIFF;
+use oauth2::basic::BasicClient;
+use app_state::State;
 
 extern crate dotenv;
 // extern crate refinery;
@@ -21,11 +23,13 @@ mod config;
 mod light_source;
 mod tiles;
 mod error;
-
+mod auth;
+mod app_state;
 // mod embedded {
 //     use refinery::embed_migrations;
 //     embed_migrations!("./migrations");
 // }
+
 
 #[get("/health")]
 async fn health() -> impl Responder {
@@ -143,14 +147,6 @@ async fn lp_tile(
     // Ok(HttpResponse::Ok().body("ALL OK!"))
 }
 
-#[derive(Clone)]
-struct State{
-    pub db: DBPool,
-    pub client: Client,
-    pub tiles: TilePool,
-    pub lp_tiles: TilePool
-}
-
 fn get_geo_tiff_headers(){
     let tiff = TIFF::open("images/reprog_VNL_cog.tif") ;
 }
@@ -174,17 +170,22 @@ async fn main() -> std::io::Result<()> {
     //
     get_geo_tiff_headers();
 
+    let auth_client = auth::auth_client().expect("Failed to setup auth client");
+
     HttpServer::new(move || {
         let state = State{
             db:pool.clone(),
             tiles:tile_pool.clone(),
             lp_tiles:lp_tiles.clone(),
-            client: Client::new()
+            client: Client::new(),
+            auth_client: auth_client.clone()
         };
         App::new()
             .data(state.clone())
             .service(health)
             .service(lp_tile_local)
+            .service(auth::zooniverse_auth)
+            .service(auth::login)
             .service(get_targets)
             .service(get_target)
             .service(get_incorp_places)
