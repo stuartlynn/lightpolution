@@ -1,1 +1,1 @@
-declare module '@deck.gl/extensions';
+declare module "@deck.gl/extensions";

@@ -1,4 +1,5 @@
-type QueryAutocompletePrediction = google.maps.places.QueryAutocompletePrediction;
+type QueryAutocompletePrediction =
+  google.maps.places.QueryAutocompletePrediction;
 type PlacesServiceStatus = google.maps.places.PlacesServiceStatus;
 type PlacesService = google.maps.places.PlacesService;
 type GeocoderService = google.maps.Gecoder;
@@ -15,4 +16,4 @@ type PlaceDetailsRequest = google.maps.places.PlaceDetailsRequest;
 type FindPlaceFromQueryRequest = google.maps.places.FindPlaceFromQueryRequest;
 type TextSearchRequest = google.maps.places.TextSearchRequest;
 
-declare module 'react-use-geolocation';
+declare module "react-use-geolocation";

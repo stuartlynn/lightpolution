@@ -1,10 +1,8 @@
-import styled from 'styled-components'
-import {Page} from 'Pages/Page/Page'
+import styled from "styled-components";
+import { Page } from "Pages/Page/Page";
 
-const HomePage = styled(Page)`
-
-` 
+const HomePage = styled(Page)``;
 
 export const Styles = {
-    HomePage
-}
+  HomePage,
+};
