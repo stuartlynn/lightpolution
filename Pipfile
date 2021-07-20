@@ -18,6 +18,7 @@ scipy = "*"
 rtree = "*"
 pygeos = "*"
 panoptes-client = "*"
+python-dotenv = "*"
 
 [dev-packages]
 
