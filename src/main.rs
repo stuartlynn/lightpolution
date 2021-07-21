@@ -109,9 +109,6 @@ async fn lp_tile_local(
             actix_web::error::ErrorNotFound(format!("Failed to get mbtile {:?}", tile_id))
         })?;
 
-    println!("got image data {:?}", tile_id);
-    println!("{:?}", row.tile_data);
-
     Ok(HttpResponse::Ok()
     .header(
         "Content-Type", "image/png"
