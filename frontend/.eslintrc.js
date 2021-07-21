@@ -32,6 +32,7 @@ module.exports = {
     "import/prefer-default-export": "off",
     "jsx-a11y/label-has-associated-control": "warn",
     "react/prop-types": "warn",
+    "react-hooks/exhaustive-deps":"warn",
     "prettier/prettier": [
       "warn",
       {

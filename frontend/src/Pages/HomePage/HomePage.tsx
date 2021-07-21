@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { FlyToInterpolator } from "@deck.gl/core";
 import DeckGL from "@deck.gl/react";
 import { StaticMap } from "react-map-gl";
 import { TileLayer, MVTLayer } from "@deck.gl/geo-layers";
@@ -8,6 +9,7 @@ import { GeoCodeResults } from "Components/GeoCodeResults/GeoCodeResults";
 import { usePlaces, usePlagesGeocodeEarth } from "Hooks/usePlaces";
 import { DataFilterExtension } from "@deck.gl/extensions";
 import chroma from "chroma-js";
+import { useCurrentSubject } from "Hooks/useCurrentSubject";
 import { Styles } from "./HomePageStyles";
 
 const INITIAL_VIEW_STATE = {
@@ -39,6 +41,7 @@ export const HomePage: React.FC = () => {
   const [showTargets, setShowTargets] = useState(false);
   const [showPowerPlants, setShowPowerPlants] = useState(false);
   const [minFlux, setMinFlux] = useState(0);
+  const [viewState, setViewState] = useState(INITIAL_VIEW_STATE);
 
   const [searchPrimed, setSearchPrimed] = useState(false);
   const [searchLoc, setSearchLoc] =
@@ -49,8 +52,23 @@ export const HomePage: React.FC = () => {
   const geocodeResults = usePlaces(searchLoc);
   const geocodeEarthResults = usePlagesGeocodeEarth(searchLoc);
 
-  console.log("Geocode results ", geocodeResults);
-  console.log("Geocode earth results ", geocodeEarthResults);
+  const {currentSubject, nextSubject} = useCurrentSubject();
+
+  // Zooms to the currently active subject
+  useEffect(() => {
+    if (currentSubject) {
+      setViewState({
+        ...INITIAL_VIEW_STATE,
+        latitude: currentSubject.metadata.lat,
+        longitude: currentSubject.metadata.lng,
+        zoom: 13,
+        // @ts-ignore
+        transitionDuration: 1000,
+        // @ts-ignore
+        transitionInterpolator: new FlyToInterpolator(),
+      });
+    }
+  }, [currentSubject, INITIAL_VIEW_STATE]);
 
   const LightPolutionLayer = new TileLayer({
     data: "/light_polution/{x}/{y}/{z}",
@@ -83,9 +101,11 @@ export const HomePage: React.FC = () => {
     marker: { x: 0, y: 0, width: 128, height: 128, mask: true },
   };
 
+
   const SearchMarkerLayer = new IconLayer({
     id: "search_marker",
-    data: searchLoc ? [{ coords: searchLoc }] : [],
+    data: currentSubject ?  [{coords:[currentSubject.metadata.lng, currentSubject.metadata.lat]}] : [] 
+,
     iconAtlas:
       "https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png",
     iconMapping: ICON_MAPPING,
@@ -169,6 +189,7 @@ export const HomePage: React.FC = () => {
         nightLightOpacity={nightLightOpacity}
         minFlux={minFlux}
         onMinFluxChange={setMinFlux}
+        onNextSubject={nextSubject}
       />
       <GeoCodeResults
         isSearchPrimed={searchPrimed}
@@ -177,7 +198,7 @@ export const HomePage: React.FC = () => {
         results={geocodeResults}
       />
       <DeckGL
-        initialViewState={INITIAL_VIEW_STATE}
+        initialViewState={viewState}
         controller
         // @ts-ignore
         layers={[

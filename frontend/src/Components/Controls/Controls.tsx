@@ -1,7 +1,9 @@
 import React from "react";
 import { Styles } from "Components/Controls/ControlsStyles";
+import {Checkbox} from 'Components/Checkbox/Checkbox'
 import Select from "react-select";
 import Slider from "rc-slider";
+import { PrimaryButton, Tab, Tabs, SpacedText, AdminCheckbox } from "@zooniverse/react-components";
 import "rc-slider/assets/index.css";
 
 interface ControlsProps {
@@ -19,6 +21,7 @@ interface ControlsProps {
   onSetShowTargets: (show: boolean) => void;
   onSetShowPowerPlants: (show: boolean) => void;
   onMinFluxChange: (flux: number) => void;
+  onNextSubject: ()=>void;
 }
 
 const MapOptions = [
@@ -43,62 +46,43 @@ export const Controls: React.FC<ControlsProps> = ({
   onSetShowNightLight,
   onSetShowTargets,
   onSetShowPowerPlants,
+  onNextSubject
 }) => {
   const selection = MapOptions.find((mo) => mo.value === baseMap);
 
   return (
     <Styles.Controls>
-      <Styles.Form>
-        <label>
-          Show incorporated places
-          <input
-            type="checkbox"
-            checked={showIncorporated}
-            onChange={(e) => onSetShowIncorparted(e.target.checked)}
-          />
-        </label>
-        <label>
-          Show night light
-          <input
-            type="checkbox"
-            checked={showNightLight}
-            onChange={(e) => onSetShowNightLight(e.target.checked)}
-          />
-        </label>
-        <label>
-          Show targets
-          <input
-            type="checkbox"
-            checked={showTargets}
-            onChange={(e) => onSetShowTargets(e.target.checked)}
-          />
-        </label>
-        <label>
-          Show powerplants
-          <input
-            type="checkbox"
-            checked={showPowerPlants}
-            onChange={(e) => onSetShowPowerPlants(e.target.checked)}
-          />
-        </label>
+      <Tabs>
+        <Tab title="Guided">
+          <Styles.Form>
+            <Checkbox checked={showIncorporated} onChange={onSetShowIncorparted} label = 'Show incorporated places'/>
+            <Checkbox checked={showNightLight} onChange={ onSetShowNightLight} label = 'Show light polution'/>
+            <Checkbox checked={showTargets} onChange={onSetShowTargets} label = 'Show candidates'/>
+            <Checkbox checked={showPowerPlants} onChange={onSetShowPowerPlants} label = 'Show power plants'/>
 
-        <Select
-          options={MapOptions}
-          value={selection}
-          placeholder="BaseMap"
-          onChange={(option) => onSetBaseMap(option!.value)}
-        />
-        <label>
-          Min target flux {minFlux}
-          <Slider
-            min={0}
-            max={1000}
-            step={10}
-            value={minFlux}
-            onChange={onMinFluxChange}
-          />
-        </label>
-      </Styles.Form>
+            <Select
+              options={MapOptions}
+              value={selection}
+              placeholder="BaseMap"
+              onChange={(option) => onSetBaseMap(option!.value)}
+            />
+            <label>
+              Min target flux {minFlux}
+              <Slider
+                min={0}
+                max={1000}
+                step={10}
+                value={minFlux}
+                onChange={onMinFluxChange}
+              />
+            </label>
+           <PrimaryButton  onClick={onNextSubject} label="Next Subject" />
+          </Styles.Form>
+        </Tab>
+          <Tab title="Free">
+            <p>Use this mode to identify targets our automated methods missed </p>
+          </Tab>
+      </Tabs>
     </Styles.Controls>
   );
 };

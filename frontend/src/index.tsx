@@ -1,12 +1,27 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import { SWRConfig } from "swr";
+import { zooniverseApi } from "utils";
+import zooTheme from '@zooniverse/grommet-theme'
+import { Grommet } from 'grommet'
+
+
+import reportWebVitals from "./reportWebVitals";
 import "./index.css";
 import App from "./App";
-import reportWebVitals from "./reportWebVitals";
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <SWRConfig
+      value={{
+        refreshInterval: 3000,
+        zooniverseApi,
+      }}
+    >
+        <Grommet theme={zooTheme}>
+      <App />
+        </Grommet>
+    </SWRConfig>
   </React.StrictMode>,
   document.getElementById("root")
 );
