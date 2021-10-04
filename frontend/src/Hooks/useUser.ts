@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken'
-import {zooniverseApi} from 'utils'
+import {zooniverseApi} from 'zooApi'
 import {UserToken, User} from 'shared/types'
 import useSWR from 'swr'
 

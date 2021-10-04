@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import { SWRConfig } from "swr";
-import { zooniverseApi } from "utils";
+import { zooniverseApi} from "zooApi";
 import zooTheme from "@zooniverse/grommet-theme";
 import { Grommet } from "grommet";
 

@@ -1,5 +1,5 @@
 import React, { useReducer, createContext, useEffect } from "react";
-import { zooniverseApi } from "utils";
+import { zooniverseApi} from "zooApi";
 import {Subject,SubjectMeta,Classification,Annotation} from 'shared/types'
 
 interface ClassificationState {
