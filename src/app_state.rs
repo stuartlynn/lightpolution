@@ -9,6 +9,6 @@ pub struct State{
     pub db: DBPool,
     pub client: Client,
     pub tiles: TilePool,
-    pub lp_tiles: TilePool,
+    // pub lp_tiles: TilePool,
     pub auth_client: BasicClient
 }

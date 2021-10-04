@@ -89,32 +89,32 @@ async fn get_incorp_places(
 
 }
 
-#[get("/light_polution/{x}/{y}/{z}")]
-async fn lp_tile_local(
-    state: web::Data<State>,
-    tile_id: web::Path<TileID>
-) -> Result<HttpResponse<actix_web::dev::Body>, Error>{
+// #[get("/light_polution/{x}/{y}/{z}")]
+// async fn lp_tile_local(
+//     state: web::Data<State>,
+//     tile_id: web::Path<TileID>
+// ) -> Result<HttpResponse<actix_web::dev::Body>, Error>{
 
-    let query = "select tile_data from tiles where zoom_level = $1 and tile_column = $2 and tile_row = $3";
+//     let query = "select tile_data from tiles where zoom_level = $1 and tile_column = $2 and tile_row = $3";
 
-    let y = ( 1 << tile_id.z) -1 - tile_id.y; 
+//     let y = ( 1 << tile_id.z) -1 - tile_id.y; 
 
-    let row: MBTile = sqlx::query_as(query)
-        .bind(tile_id.z as u32)
-        .bind(tile_id.x as u32)
-        .bind( y as u32)
-        .fetch_one(&state.lp_tiles).await
-        .map_err(|e| {
-            println!("{:?}",e);
-            actix_web::error::ErrorNotFound(format!("Failed to get mbtile {:?}", tile_id))
-        })?;
+//     let row: MBTile = sqlx::query_as(query)
+//         .bind(tile_id.z as u32)
+//         .bind(tile_id.x as u32)
+//         .bind( y as u32)
+//         .fetch_one(&state.lp_tiles).await
+//         .map_err(|e| {
+//             println!("{:?}",e);
+//             actix_web::error::ErrorNotFound(format!("Failed to get mbtile {:?}", tile_id))
+//         })?;
 
-    Ok(HttpResponse::Ok()
-    .header(
-        "Content-Type", "image/png"
-    )
-    .body(row.tile_data))
-}
+//     Ok(HttpResponse::Ok()
+//     .header(
+//         "Content-Type", "image/png"
+//     )
+//     .body(row.tile_data))
+// }
 
 #[get("/light_polution/{x}/{y}/{z}")]
 async fn lp_tile(
@@ -123,7 +123,8 @@ async fn lp_tile(
 ) -> Result<HttpResponse<actix_web::dev::Body>, Error> {
     let bbox = bbox(&tileID);
     let bbox_str = format!("{},{},{},{}", bbox[0], bbox[3], bbox[2], bbox[1]);
-    let url = format!("https://lighttrends.lightpollutionmap.info/geoserver/gwc/service/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image/png&TRANSPARENT=true&TILED=true&SRS=EPSG:3857&LAYERS=lighttrends:viirs_npp_201600&STYLES=viirs_c1&WIDTH=256&HEIGHT=256&CRS=EPSG:3857&BBOX={}", bbox_str);
+// https://lighttrends.lightpollutionmap.info/geoserver/gwc/service/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image%2Fpng&TRANSPARENT=true&TILED=true&SRS=EPSG%3A3857&LAYERS=lighttrends%3Aviirs_npp_202000&STYLES=viirs_c1&WIDTH=256&HEIGHT=256&CRS=EPSG%3A3857&BBOX=-12523489.9598912%2C3757046.9879673603%2C-11897315.46189664%2C4383221.485961921
+    let url = format!("https://lighttrends.lightpollutionmap.info/geoserver/gwc/service/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image/png&TRANSPARENT=true&TILED=true&SRS=EPSG:3857&LAYERS=lighttrends:viirs_npp_202000&STYLES=viirs_c1&WIDTH=256&HEIGHT=256&CRS=EPSG:3857&BBOX={}", bbox_str);
 
     let res  = state.client
         .get(url)
@@ -156,7 +157,7 @@ async fn main() -> std::io::Result<()> {
     let config = Config::from_env().unwrap();
 
     // Create DB Pool
-    let (pool,tile_pool, lp_tiles) = establish_connection_sqlx(&config).await;
+    let (pool,tile_pool) = establish_connection_sqlx(&config).await;
 
     // // Run migrations 
     // let mut conn = pool.get().await.unwrap();
@@ -173,14 +174,14 @@ async fn main() -> std::io::Result<()> {
         let state = State{
             db:pool.clone(),
             tiles:tile_pool.clone(),
-            lp_tiles:lp_tiles.clone(),
+            // lp_tiles:lp_tiles.clone(),
             client: Client::new(),
             auth_client: auth_client.clone()
         };
         App::new()
             .data(state.clone())
             .service(health)
-            .service(lp_tile_local)
+            .service(lp_tile)
             .service(auth::zooniverse_auth)
             .service(auth::login)
             .service(get_targets)
