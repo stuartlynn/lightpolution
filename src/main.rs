@@ -168,7 +168,7 @@ async fn main() -> std::io::Result<()> {
     //
     get_geo_tiff_headers();
 
-    let auth_client = auth::auth_client().expect("Failed to setup auth client");
+    let auth_client = auth::auth_client(config.auth_redirect_url).expect("Failed to setup auth client");
 
     HttpServer::new(move || {
         let state = State{

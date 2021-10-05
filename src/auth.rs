@@ -18,7 +18,7 @@ use serde::{Deserialize};
 
 use actix_web::{get, Error,HttpResponse, Responder, web, http::header};
 
-pub fn auth_client() -> anyhow::Result<BasicClient> {
+pub fn auth_client(auth_redirect_url: String) -> anyhow::Result<BasicClient> {
     let client =
     BasicClient::new(
         ClientId::new("1b1a4f2cb3de2b7a2a76291093b2148bbba4ce6ad38544da773794d0adaceec8".to_string()),
@@ -27,7 +27,7 @@ pub fn auth_client() -> anyhow::Result<BasicClient> {
         Some(TokenUrl::new("https://panoptes.zooniverse.org/oauth/token".to_string())?)
     )
     // Set the URL the user will be redirected to after the authorization process.
-    .set_redirect_uri(RedirectUrl::new("http://localhost:8080".to_string())?);
+    .set_redirect_uri(RedirectUrl::new(auth_redirect_url)?);
 
     Ok(client)
 }

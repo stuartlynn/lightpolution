@@ -4,8 +4,9 @@ use serde::Deserialize;
 #[derive(Deserialize)]
 pub struct Config {
     pub database_url: String,
-    pub tile_url:String
+    pub tile_url:String,
     // pub lp_tile_url: String
+    pub auth_redirect_url:String
 }
 
 impl Config {
